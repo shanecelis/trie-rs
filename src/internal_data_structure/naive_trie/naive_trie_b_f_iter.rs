@@ -43,8 +43,8 @@ impl<Label: Ord, Value> Iterator for NaiveTrieBFIter<Label, Value> {
 #[cfg(test)]
 mod bf_iter_tests {
     type NaiveTrie<T> = super::NaiveTrie<T, ()>;
-    const TRUE: Option<()> = Some(());
-    const FALSE: Option<()> = None;
+    const TERMINAL: () = ();
+    // const FALSE: Option<()> = None;
 
     macro_rules! parameterized_tests {
         ($($name:ident: $value:expr,)*) => {
@@ -66,7 +66,8 @@ mod bf_iter_tests {
 
                     if let NaiveTrie::IntermOrLeaf(n) = node {
                         assert_eq!(n.label, *expected_node.label());
-                        assert_eq!(n.value.is_some(), expected_node.value().is_some());
+                        // assert_eq!(n.label, expected_node);
+                        // assert_eq!(n.value.is_some(), expected_node.value().is_some());
                     }
                 }
             }
@@ -88,9 +89,10 @@ mod bf_iter_tests {
             vec![
                 NaiveTrie::make_root(),
                 // parent = root
-                NaiveTrie::make_interm_or_leaf(b'a', TRUE),
+                NaiveTrie::make_interm(b'a'),
                 NaiveTrie::PhantomSibling,
                 // parent = a
+                NaiveTrie::make_leaf(TERMINAL),
                 NaiveTrie::PhantomSibling,
             ]
         ),
@@ -99,9 +101,10 @@ mod bf_iter_tests {
             vec![
                 NaiveTrie::make_root(),
                 // parent = root
-                NaiveTrie::make_interm_or_leaf(b'a', TRUE),
+                NaiveTrie::make_interm(b'a'),
                 NaiveTrie::PhantomSibling,
                 // parent = a
+                NaiveTrie::make_leaf(TERMINAL),
                 NaiveTrie::PhantomSibling,
             ]
         ),
@@ -123,21 +126,24 @@ mod bf_iter_tests {
             vec![
                 NaiveTrie::make_root(),
                 // parent = root
-                NaiveTrie::make_interm_or_leaf(b'a', TRUE),
-                NaiveTrie::make_interm_or_leaf(b'b', FALSE),
+                NaiveTrie::make_interm(b'a'),
+                NaiveTrie::make_interm(b'b'),
                 NaiveTrie::PhantomSibling,
                 // parent = [a]
-                NaiveTrie::make_interm_or_leaf(b'n', TRUE),
+                NaiveTrie::make_leaf(TERMINAL),
+                NaiveTrie::make_interm(b'n'),
                 NaiveTrie::PhantomSibling,
                 // parent = b
-                NaiveTrie::make_interm_or_leaf(b'a', FALSE),
+                NaiveTrie::make_leaf(TERMINAL),
+                NaiveTrie::make_interm(b'a'),
                 NaiveTrie::PhantomSibling,
                 // parent = n
                 NaiveTrie::PhantomSibling,
                 // parent = b[a]d
-                NaiveTrie::make_interm_or_leaf(b'd', TRUE),
+                NaiveTrie::make_interm(b'd'),
                 NaiveTrie::PhantomSibling,
                 // parent = d
+                NaiveTrie::make_leaf(TERMINAL),
                 NaiveTrie::PhantomSibling,
             ]
         ),
@@ -149,52 +155,52 @@ mod bf_iter_tests {
             vec![
                 NaiveTrie::make_root(),
                 // parent = root
-                NaiveTrie::make_interm_or_leaf(b'a', TRUE),
-                NaiveTrie::make_interm_or_leaf(227, FALSE),
+                NaiveTrie::make_interm_or_leaf(b'a', TERMINAL),
+                NaiveTrie::make_interm_or_leaf(227),
                 NaiveTrie::PhantomSibling,
                 // parent = a
-                NaiveTrie::make_interm_or_leaf(b'n', TRUE),
+                NaiveTrie::make_interm_or_leaf(b'n', TERMINAL),
                 NaiveTrie::PhantomSibling,
                 // parent = [227] 130 138 (り)
-                NaiveTrie::make_interm_or_leaf(130, FALSE),
+                NaiveTrie::make_interm_or_leaf(130),
                 NaiveTrie::PhantomSibling,
                 // parent = n
                 NaiveTrie::PhantomSibling,
                 // parent = 227 [130] 138 (り)
-                NaiveTrie::make_interm_or_leaf(138, FALSE),
+                NaiveTrie::make_interm_or_leaf(138),
                 NaiveTrie::PhantomSibling,
                 // parent = 227 130 [138] (り)
-                NaiveTrie::make_interm_or_leaf(227, FALSE),
+                NaiveTrie::make_interm_or_leaf(227),
                 NaiveTrie::PhantomSibling,
                 // parent = [227] 130 147 (ん)
-                NaiveTrie::make_interm_or_leaf(130, FALSE),
+                NaiveTrie::make_interm_or_leaf(130),
                 NaiveTrie::PhantomSibling,
                 // parent = 227 [130] 147 (ん)
-                NaiveTrie::make_interm_or_leaf(147, FALSE),
+                NaiveTrie::make_interm_or_leaf(147),
                 NaiveTrie::PhantomSibling,
                 // parent = 227 130 [147] (ん)
-                NaiveTrie::make_interm_or_leaf(227, FALSE),
+                NaiveTrie::make_interm_or_leaf(227),
                 NaiveTrie::PhantomSibling,
                 // parent = [227] _ _ (ご or り)
-                NaiveTrie::make_interm_or_leaf(129, FALSE),
-                NaiveTrie::make_interm_or_leaf(130, FALSE),
+                NaiveTrie::make_interm_or_leaf(129),
+                NaiveTrie::make_interm_or_leaf(130),
                 NaiveTrie::PhantomSibling,
                 // parent = 227 [129] 148 (ご)
-                NaiveTrie::make_interm_or_leaf(148, TRUE),
+                NaiveTrie::make_interm_or_leaf(148, TERMINAL),
                 NaiveTrie::PhantomSibling,
                 // parent = 227 [130] 138 (り)
-                NaiveTrie::make_interm_or_leaf(138, FALSE),
+                NaiveTrie::make_interm_or_leaf(138),
                 NaiveTrie::PhantomSibling,
                 // parent = 227 129 [148] (ご)
                 NaiveTrie::PhantomSibling,
                 // parent = 227 130 [138] (り)
-                NaiveTrie::make_interm_or_leaf(227, FALSE),
+                NaiveTrie::make_interm_or_leaf(227),
                 NaiveTrie::PhantomSibling,
                 // parent = [227] 130 147 (ん)
-                NaiveTrie::make_interm_or_leaf(130, FALSE),
+                NaiveTrie::make_interm_or_leaf(130),
                 NaiveTrie::PhantomSibling,
                 // parent = 227 [130] 147 (ん)
-                NaiveTrie::make_interm_or_leaf(147, TRUE),
+                NaiveTrie::make_interm_or_leaf(147, TERMINAL),
                 NaiveTrie::PhantomSibling,
                 // parent = 227 130 [147] (ん)
                 NaiveTrie::PhantomSibling,

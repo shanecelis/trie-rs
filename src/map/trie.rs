@@ -1,10 +1,10 @@
 //! A trie map stores a value with each word or key.
-use super::Trie;
+use super::{Trie, TrieLabel};
 use crate::inc_search::IncSearch;
 use crate::iter::{PostfixIter, PrefixIter, SearchIter};
 use crate::try_collect::{TryCollect, TryFromIterator};
 use louds_rs::{ChildNodeIter, LoudsNodeNum, AncestorNodeIter};
-use std::iter::FromIterator;
+use std::{iter::FromIterator, cmp::{PartialOrd, Ordering}};
 
 impl<Label: Ord, Value> Trie<Label, Value> {
     /// Return `Some(&Value)` if query is an exact match.
@@ -233,6 +233,109 @@ where
         builder.build()
     }
 }
+
+impl<Label: PartialOrd, Value> PartialOrd for TrieLabel<Label, Value> {
+    #[inline]
+    fn partial_cmp(
+        &self,
+        other: &TrieLabel<Label, Value>,
+    ) -> Option<Ordering> {
+        match (self, other) {
+            (TrieLabel::Label(a), TrieLabel::Label(b)) => {
+                PartialOrd::partial_cmp(a, b)
+            }
+            (TrieLabel::Value(_), TrieLabel::Value(_)) => {
+                panic!("There should never be more than one value in a set of leaves.")
+            }
+            (TrieLabel::Label(_), TrieLabel::Value(_)) => {
+                Some(Ordering::Greater)
+            }
+            (TrieLabel::Value(_), TrieLabel::Label(_)) => {
+                Some(Ordering::Less)
+            }
+        }
+    }
+}
+
+impl<Label: PartialOrd, Value> PartialOrd<Label> for TrieLabel<Label, Value> {
+    #[inline]
+    fn partial_cmp(
+        &self,
+        other: &Label,
+    ) -> Option<Ordering> {
+        match self {
+            TrieLabel::Label(a) => {
+                PartialOrd::partial_cmp(a, other)
+            }
+            TrieLabel::Value(_) => {
+                Some(Ordering::Less)
+            }
+        }
+    }
+}
+// impl<Label: PartialOrd + Eq, Value: PartialEq + Eq> Ord for TrieLabel<Label, Value> {
+//     // Required method
+//     fn cmp(&self, other: &Self) -> Ordering {
+//         self.partial_cmp(other).unwrap();
+//     }
+// }
+
+impl<Label: PartialEq, Value> PartialEq<Label> for TrieLabel<Label, Value> {
+    #[inline]
+    fn eq(&self, other: &Label) -> bool {
+        match self {
+            TrieLabel::Label(a) => {
+                PartialEq::partial_cmp(a, other)
+            }
+            TrieLabel::Value(_) => {
+                false
+            }
+        }
+    }
+}
+
+// impl<Label: PartialEq, Value: PartialEq> PartialEq for TrieLabel<Label, Value> {
+//     #[inline]
+//     fn eq(&self, other: &Self) -> bool {
+//         match (self, other) {
+//             (TrieLabel::Label(a), TrieLabel::Label(b)) => {
+//                 PartialEq::partial_eq(a, b)
+//             }
+//             (TrieLabel::Value(a), TrieLabel::Value(b)) => {
+//                 PartialEq::partial_eq(a, b)
+//                 // panic!("There should never be more than one value in a set of leaves.")
+//             }
+//             (TrieLabel::Label(a), TrieLabel::Value(b)) => {
+//                 false
+//             }
+//             (TrieLabel::Value(a), TrieLabel::Label(b)) => {
+//                 false
+//             }
+//         }
+//     }
+// }
+
+impl<Label: PartialEq, Value> PartialEq for TrieLabel<Label, Value> {
+    #[inline]
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (TrieLabel::Label(a), TrieLabel::Label(b)) => {
+                PartialEq::partial_eq(a, b)
+            }
+            (TrieLabel::Value(a), TrieLabel::Value(b)) => {
+                // PartialEq::partial_eq(a, b)
+                panic!("There should never be more than one value in a set of leaves.")
+            }
+            (TrieLabel::Label(a), TrieLabel::Value(b)) => {
+                false
+            }
+            (TrieLabel::Value(a), TrieLabel::Label(b)) => {
+                false
+            }
+        }
+    }
+}
+
 
 #[cfg(test)]
 mod search_tests {

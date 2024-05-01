@@ -27,10 +27,10 @@ pub struct TrieBuilder<Label, Value> {
     naive_trie: NaiveTrie<Label, Value>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq)]
 #[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg, mem_dbg::MemSize))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-struct TrieLabel<Label, Value> {
-    label: Label,
-    value: Option<Value>,
+pub enum TrieLabel<Label, Value> {
+    Label(Label),
+    Value(Value),
 }

@@ -268,7 +268,7 @@ mod search_tests {
         let mut accum = 0;
         for result in BufReader::new(File::open(edict2_path).unwrap())
             .lines()
-            .take(COUNT)
+            // .take(COUNT)
         {
             let l = result.unwrap();
             accum += l.len();

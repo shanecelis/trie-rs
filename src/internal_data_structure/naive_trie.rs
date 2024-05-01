@@ -1,5 +1,6 @@
 pub mod naive_trie_b_f_iter;
 pub mod naive_trie_impl;
+use crate::map::TrieLabel;
 
 #[cfg(feature = "mem_dbg")]
 use mem_dbg::MemDbg;
@@ -92,6 +93,10 @@ pub struct NaiveTrieRoot<Label, Value> {
 pub struct NaiveTrieIntermOrLeaf<Label, Value> {
     /// Sorted by Label's order.
     children: Vec<NaiveTrie<Label, Value>>,
-    pub(crate) label: Label,
-    pub(crate) value: Option<Value>,
+    pub(crate) label: TrieLabel<Label, Value>,
 }
+
+// pub enum NaiveTrieEntry<Label, Value> {
+//     Label(Label),
+//     Value(Value),
+// }

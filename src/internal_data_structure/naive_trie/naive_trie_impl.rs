@@ -1,24 +1,42 @@
+use crate::map::TrieLabel;
 use super::naive_trie_b_f_iter::NaiveTrieBFIter;
 use super::{NaiveTrie, NaiveTrieIntermOrLeaf, NaiveTrieRoot};
 use std::vec::Drain;
+use std::iter;
 
 impl<'trie, Label: Ord, Value> NaiveTrie<Label, Value> {
     pub fn make_root() -> Self {
         NaiveTrie::Root(NaiveTrieRoot { children: vec![] })
     }
 
-    pub fn make_interm_or_leaf(label: Label, terminal: Option<Value>) -> Self {
+    pub fn make_interm_or_leaf(label: TrieLabel<Label, Value>) -> Self {
         NaiveTrie::IntermOrLeaf(NaiveTrieIntermOrLeaf {
             children: vec![],
             label,
-            value: terminal,
+        })
+    }
+
+    pub fn make_interm(label: Label) -> Self {
+        NaiveTrie::IntermOrLeaf(NaiveTrieIntermOrLeaf {
+            children: vec![],
+            label: TrieLabel::Label(label),
+        })
+    }
+
+    pub fn make_leaf(value: Value) -> Self {
+        NaiveTrie::IntermOrLeaf(NaiveTrieIntermOrLeaf {
+            children: vec![],
+            label: TrieLabel::Value(value),
         })
     }
 
     pub fn push<Arr: Iterator<Item = Label>>(&'trie mut self, word: Arr, value: Value) {
         let mut trie = self;
-        let mut value = Some(value);
-        let mut word = word.peekable();
+        // let mut value = Some(value);
+        let mut word: Vec<TrieLabel<Label,Value>> = word.map(TrieLabel::Label)
+                           .chain(iter::once(TrieLabel::Value(value)))
+            .collect();
+        let mut word = word.into_iter();
         while let Some(chr) = word.next() {
             let res = trie
                 .children()
@@ -32,9 +50,8 @@ impl<'trie, Label: Ord, Value> NaiveTrie<Label, Value> {
                     };
                 }
                 Err(j) => {
-                    let is_terminal = word.peek().is_none();
                     let child_trie =
-                        Self::make_interm_or_leaf(chr, is_terminal.then(|| value.take().unwrap()));
+                        Self::make_interm_or_leaf(chr);
                     trie = match trie {
                         NaiveTrie::Root(node) => {
                             node.children.insert(j, child_trie);
@@ -79,7 +96,7 @@ impl<'trie, Label: Ord, Value> NaiveTrie<Label, Value> {
 
     /// # Panics
     /// If self is not IntermOrLeaf.
-    pub fn label(&self) -> &Label {
+    pub fn label(&self) -> &TrieLabel<Label, Value> {
         match self {
             NaiveTrie::IntermOrLeaf(node) => &node.label,
             _ => panic!("Unexpected type"),

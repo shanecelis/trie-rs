@@ -38,10 +38,7 @@ impl<Label: Ord, Value> TrieBuilder<Label, Value> {
                 NaiveTrie::Root(_) => {}
                 NaiveTrie::IntermOrLeaf(n) => {
                     louds_bits.push(true);
-                    trie_labels.push(TrieLabel {
-                        label: n.label,
-                        value: n.value,
-                    });
+                    trie_labels.push(n);
                 }
                 NaiveTrie::PhantomSibling => {
                     louds_bits.push(false);

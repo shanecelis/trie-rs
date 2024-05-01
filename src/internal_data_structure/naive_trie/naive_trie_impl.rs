@@ -84,15 +84,15 @@ impl<'trie, Label: Ord, Value> NaiveTrie<Label, Value> {
         }
     }
 
-    /// # Panics
-    /// If self is not IntermOrLeaf.
-    #[allow(dead_code)]
-    pub fn value(&self) -> Option<&Value> {
-        match self {
-            NaiveTrie::IntermOrLeaf(node) => node.value.as_ref(),
-            _ => panic!("Unexpected type"),
-        }
-    }
+    // /// # Panics
+    // /// If self is not IntermOrLeaf.
+    // #[allow(dead_code)]
+    // pub fn value(&self) -> Option<&Value> {
+    //     match self {
+    //         NaiveTrie::IntermOrLeaf(node) => node.value.as_ref(),
+    //         _ => panic!("Unexpected type"),
+    //     }
+    // }
 
     /// # Panics
     /// If self is not IntermOrLeaf.

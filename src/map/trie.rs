@@ -187,13 +187,26 @@ impl<Label: Ord, Value> Trie<Label, Value> {
         children_node_nums.binary_search_by(|child_node_num| self.label(*child_node_num).cmp(query))
     }
 
+    pub(crate) fn trie_label(&self, node_num: LoudsNodeNum) -> &TrieLabel<Label, Value> {
+        &self.trie_labels[(node_num.0 - 2) as usize]
+    }
+
+    pub(crate) fn trie_label_mut(&mut self, node_num: LoudsNodeNum) -> &mut TrieLabel<Label, Value> {
+        &mut self.trie_labels[(node_num.0 - 2) as usize]
+    }
+
     pub(crate) fn label(&self, node_num: LoudsNodeNum) -> &Label {
-        &self.trie_labels[(node_num.0 - 2) as usize].label
+        match &self.trie_labels[(node_num.0 - 2) as usize] {
+            TrieLabel::Label(l) => l,
+            _ => panic!(),
+        }
     }
 
     pub(crate) fn is_terminal(&self, node_num: LoudsNodeNum) -> bool {
         if node_num.0 >= 2 {
-            self.trie_labels[(node_num.0 - 2) as usize].value.is_some()
+            self.children_node_nums(node_num)
+                .next().map(|x| matches!(self.trie_label(x), TrieLabel::Value(_)))
+                .unwrap_or(false)
         } else {
             false
         }
@@ -201,15 +214,31 @@ impl<Label: Ord, Value> Trie<Label, Value> {
 
     pub(crate) fn value(&self, node_num: LoudsNodeNum) -> Option<&Value> {
         if node_num.0 >= 2 {
-            self.trie_labels[(node_num.0 - 2) as usize].value.as_ref()
+            self.children_node_nums(node_num)
+                .next().and_then(|x| match self.trie_label(x) {
+                    TrieLabel::Value(ref x) => Some(x),
+                    _ => None,
+                })
         } else {
             None
         }
     }
 
     pub(crate) fn value_mut(&mut self, node_num: LoudsNodeNum) -> Option<&mut Value> {
-        self.trie_labels[(node_num.0 - 2) as usize].value.as_mut()
+        if node_num.0 >= 2 {
+            self.children_node_nums(node_num)
+                .next().and_then(|x| match self.trie_label_mut(x) {
+                    TrieLabel::Value(ref mut x) => Some(x),
+                    _ => None,
+                })
+        } else {
+            None
+        }
     }
+
+    // pub(crate) fn value_mut(&mut self, node_num: LoudsNodeNum) -> Option<&mut Value> {
+    //     self.trie_labels[(node_num.0 - 2) as usize].value.as_mut()
+    // }
 
     pub (crate) fn child_to_ancestors(&self, node_num: LoudsNodeNum) -> AncestorNodeIter {
         self.louds.child_to_ancestors(node_num)
@@ -258,7 +287,7 @@ impl<Label: PartialOrd, Value> PartialOrd for TrieLabel<Label, Value> {
 }
 
 impl<Label: PartialOrd, Value> PartialOrd<Label> for TrieLabel<Label, Value> {
-    #[inline]
+    // #[inline]
     fn partial_cmp(
         &self,
         other: &Label,
@@ -273,19 +302,20 @@ impl<Label: PartialOrd, Value> PartialOrd<Label> for TrieLabel<Label, Value> {
         }
     }
 }
-// impl<Label: PartialOrd + Eq, Value: PartialEq + Eq> Ord for TrieLabel<Label, Value> {
-//     // Required method
-//     fn cmp(&self, other: &Self) -> Ordering {
-//         self.partial_cmp(other).unwrap();
-//     }
-// }
+
+impl<Label: PartialOrd, Value> Ord for TrieLabel<Label, Value> {
+    // Required method
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
 
 impl<Label: PartialEq, Value> PartialEq<Label> for TrieLabel<Label, Value> {
     #[inline]
     fn eq(&self, other: &Label) -> bool {
         match self {
             TrieLabel::Label(a) => {
-                PartialEq::partial_cmp(a, other)
+                PartialEq::eq(a, other)
             }
             TrieLabel::Value(_) => {
                 false
@@ -320,7 +350,7 @@ impl<Label: PartialEq, Value> PartialEq for TrieLabel<Label, Value> {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (TrieLabel::Label(a), TrieLabel::Label(b)) => {
-                PartialEq::partial_eq(a, b)
+                PartialEq::eq(a, b)
             }
             (TrieLabel::Value(a), TrieLabel::Value(b)) => {
                 // PartialEq::partial_eq(a, b)
@@ -335,6 +365,9 @@ impl<Label: PartialEq, Value> PartialEq for TrieLabel<Label, Value> {
         }
     }
 }
+
+impl<Label: PartialEq, Value> Eq for TrieLabel<Label, Value> { }
+
 
 
 #[cfg(test)]

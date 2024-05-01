@@ -27,7 +27,7 @@ pub struct TrieBuilder<Label, Value> {
     naive_trie: NaiveTrie<Label, Value>,
 }
 
-#[derive(Debug, Clone, Eq)]
+#[derive(Debug, Clone)]
 #[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg, mem_dbg::MemSize))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum TrieLabel<Label, Value> {

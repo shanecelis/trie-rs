@@ -1,4 +1,4 @@
-use crate::map::Trie;
+use crate::map::{Trie, TrieLabel};
 use crate::try_collect::{TryCollect, TryFromIterator};
 use louds_rs::LoudsNodeNum;
 use std::marker::PhantomData;
@@ -45,7 +45,11 @@ where
                 match res {
                     Ok(j) => {
                         let child_node_num = children_node_nums[j];
-                        self.buffer.push(self.trie.label(child_node_num));
+
+                        match self.trie.trie_label(child_node_num) {
+                            TrieLabel::Label(l) => self.buffer.push(l),
+                            TrieLabel::Value(_) => (),
+                        }
                         self.consume = self.trie.value(child_node_num);
                         self.node = child_node_num;
                     }

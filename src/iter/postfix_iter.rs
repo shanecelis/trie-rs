@@ -1,4 +1,4 @@
-use crate::map::Trie;
+use crate::map::{Trie, TrieLabel};
 use crate::try_collect::{TryCollect, TryFromIterator};
 use louds_rs::LoudsNodeNum;
 use std::marker::PhantomData;
@@ -57,7 +57,10 @@ where
                     .extend(children.rev().map(|child| (depth + 1, child)));
                 match depth.cmp(&self.buffer.len()) {
                     Ordering::Equal => {
-                        self.buffer.push(self.trie.label(node));
+                        match self.trie.trie_label(node) {
+                            TrieLabel::Label(ref l) => self.buffer.push(l),
+                            TrieLabel::Value(v) => self.value = Some(v),
+                        }
                     }
                     Ordering::Less => {
                         let _ = self.buffer.drain(depth + 1..);

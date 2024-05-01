@@ -184,6 +184,7 @@ impl<Label: Ord, Value> Trie<Label, Value> {
         query: &Label,
         children_node_nums: &[LoudsNodeNum],
     ) -> Result<usize, usize> {
+        // children_node_nums.binary_search_by(|child_node_num| self.trie_label(*child_node_num).cmp(query))
         children_node_nums.binary_search_by(|child_node_num| self.label(*child_node_num).cmp(query))
     }
 
@@ -198,7 +199,7 @@ impl<Label: Ord, Value> Trie<Label, Value> {
     pub(crate) fn label(&self, node_num: LoudsNodeNum) -> &Label {
         match &self.trie_labels[(node_num.0 - 2) as usize] {
             TrieLabel::Label(l) => l,
-            _ => panic!(),
+            TrieLabel::Value(_) => panic!("label() called on value"),
         }
     }
 
@@ -209,6 +210,17 @@ impl<Label: Ord, Value> Trie<Label, Value> {
                 .unwrap_or(false)
         } else {
             false
+        }
+    }
+
+    pub(crate) fn is_prefix_node(&self, node_num: LoudsNodeNum) -> bool {
+        if node_num.0 >= 2 {
+            self.children_node_nums(node_num)
+                .filter(|x| ! matches!(self.trie_label(*x), TrieLabel::Value(_)))
+                .next()
+                .is_some()
+        } else {
+            true
         }
     }
 
@@ -263,7 +275,7 @@ where
     }
 }
 
-impl<Label: PartialOrd, Value> PartialOrd for TrieLabel<Label, Value> {
+impl<Label: PartialOrd, Value: PartialEq> PartialOrd for TrieLabel<Label, Value> {
     #[inline]
     fn partial_cmp(
         &self,
@@ -303,7 +315,7 @@ impl<Label: PartialOrd, Value> PartialOrd<Label> for TrieLabel<Label, Value> {
     }
 }
 
-impl<Label: PartialOrd, Value> Ord for TrieLabel<Label, Value> {
+impl<Label: PartialOrd, Value: PartialEq> Ord for TrieLabel<Label, Value> {
     // Required method
     fn cmp(&self, other: &Self) -> Ordering {
         self.partial_cmp(other).unwrap()
@@ -345,7 +357,7 @@ impl<Label: PartialEq, Value> PartialEq<Label> for TrieLabel<Label, Value> {
 //     }
 // }
 
-impl<Label: PartialEq, Value> PartialEq for TrieLabel<Label, Value> {
+impl<Label: PartialEq, Value: PartialEq> PartialEq for TrieLabel<Label, Value> {
     #[inline]
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
@@ -353,20 +365,21 @@ impl<Label: PartialEq, Value> PartialEq for TrieLabel<Label, Value> {
                 PartialEq::eq(a, b)
             }
             (TrieLabel::Value(a), TrieLabel::Value(b)) => {
-                // PartialEq::partial_eq(a, b)
-                panic!("There should never be more than one value in a set of leaves.")
+                // false
+                PartialEq::eq(a, b)
+                // panic!("There should never be more than one value in a set of leaves.")
             }
-            (TrieLabel::Label(a), TrieLabel::Value(b)) => {
+            (TrieLabel::Label(_), TrieLabel::Value(_)) => {
                 false
             }
-            (TrieLabel::Value(a), TrieLabel::Label(b)) => {
+            (TrieLabel::Value(_), TrieLabel::Label(_)) => {
                 false
             }
         }
     }
 }
 
-impl<Label: PartialEq, Value> Eq for TrieLabel<Label, Value> { }
+impl<Label: PartialEq, Value: PartialEq> Eq for TrieLabel<Label, Value> { }
 
 
 

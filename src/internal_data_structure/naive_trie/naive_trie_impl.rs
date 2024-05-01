@@ -2,7 +2,6 @@ use crate::map::TrieLabel;
 use super::naive_trie_b_f_iter::NaiveTrieBFIter;
 use super::{NaiveTrie, NaiveTrieIntermOrLeaf, NaiveTrieRoot};
 use std::vec::Drain;
-use std::iter;
 
 impl<'trie, Label: Ord, Value> NaiveTrie<Label, Value> {
     pub fn make_root() -> Self {
@@ -30,17 +29,13 @@ impl<'trie, Label: Ord, Value> NaiveTrie<Label, Value> {
         })
     }
 
-    pub fn push<Arr: Iterator<Item = Label>>(&'trie mut self, word: Arr, value: Value) {
+    pub fn push<Arr: Iterator<Item = Label>>(&'trie mut self, mut word: Arr, value: Value) {
         let mut trie = self;
-        // let mut value = Some(value);
-        let mut word: Vec<TrieLabel<Label,Value>> = word.map(TrieLabel::Label)
-                           .chain(iter::once(TrieLabel::Value(value)))
-            .collect();
-        let mut word = word.into_iter();
+        // let mut word = word.map(TrieLabel::Label);
         while let Some(chr) = word.next() {
             let res = trie
                 .children()
-                .binary_search_by(|child| child.label().cmp(&chr));
+                .binary_search_by(|child| child.label().partial_cmp(&chr).unwrap());
             match res {
                 Ok(j) => {
                     trie = match trie {
@@ -51,7 +46,7 @@ impl<'trie, Label: Ord, Value> NaiveTrie<Label, Value> {
                 }
                 Err(j) => {
                     let child_trie =
-                        Self::make_interm_or_leaf(chr);
+                        Self::make_interm(chr);
                     trie = match trie {
                         NaiveTrie::Root(node) => {
                             node.children.insert(j, child_trie);
@@ -66,7 +61,31 @@ impl<'trie, Label: Ord, Value> NaiveTrie<Label, Value> {
                 }
             };
         }
+        match trie {
+            NaiveTrie::Root(node) => Self::insert_or_set_value(&mut node.children, value),
+            NaiveTrie::IntermOrLeaf(node) => Self::insert_or_set_value(&mut node.children, value),
+            _ => panic!("Unexpected type"),
+        }
     }
+
+    fn insert_or_set_value(children: &mut Vec<NaiveTrie<Label, Value>>, value: Value) {
+        match children.first_mut() {
+            Some(ref mut x) => {
+                match x {
+                    NaiveTrie::Root(_) => (),
+                    NaiveTrie::IntermOrLeaf(ref mut node) =>
+                        if let TrieLabel::Value(ref mut v) = node.label {
+                        *v = value;
+                        return;
+                    },
+                    _ => panic!("Unexpected type"),
+                }
+            }
+            _ => (),
+        }
+        children.insert(0, Self::make_leaf(value));
+    }
+
 
     pub fn children(&self) -> &[Self] {
         match self {

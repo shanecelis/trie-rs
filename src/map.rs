@@ -24,7 +24,7 @@ pub struct Trie<Label, Value> {
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// A trie builder for [Trie].
 pub struct TrieBuilder<Label, Value> {
-    naive_trie: NaiveTrie<Label, Value>,
+    pub(crate) naive_trie: NaiveTrie<Label, Value>,
 }
 
 #[derive(Debug, Clone)]

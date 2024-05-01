@@ -155,7 +155,7 @@ impl<'a, Label: Ord, Value> IncSearch<'a, Label, Value> {
         match res {
             Ok(j) => {
                 self.node = children_node_nums[j];
-                let is_prefix = self.trie.has_children_node_nums(self.node);
+                let is_prefix = self.trie.is_prefix_node(self.node);
                 let is_match = self.trie.value(self.node).is_some();
                 Answer::new(is_prefix, is_match)
             }

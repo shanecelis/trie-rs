@@ -244,12 +244,14 @@ mod search_tests {
     }
 
     #[cfg(feature = "mem_dbg")]
+    mod memsize {
+        use super::*;
+        use mem_dbg::*;
     #[test]
     /// ```sh
     /// cargo test --features mem_dbg memsize -- --nocapture
     /// ```
-    fn memsize() {
-        use mem_dbg::*;
+    fn dict() {
         use std::{
             env,
             fs::File,
@@ -285,6 +287,45 @@ mod search_tests {
         eprintln!("Uncompressed size {}", uncompressed_size);
         assert!(accum < trie_size); // This seems wrong to me.
         assert!(trie_size < uncompressed_size);
+    }
+
+        #[test]
+        fn trie_label() {
+            use crate::map::TrieLabel;
+            let a: TrieLabel<u8, ()> = TrieLabel::Label(1);
+            let x = 1u8;
+            assert_eq!(x.mem_size(SizeFlags::default()), 1);
+            assert_eq!(a.mem_size(SizeFlags::default()), 2);
+
+        }
+
+        #[cfg_attr(feature = "mem_dbg", derive(mem_dbg::MemDbg, mem_dbg::MemSize))]
+        struct TrieLabelStruct<T,V>(T, V);
+
+        #[test]
+        fn trie_label_struct_u8_unit() {
+            use crate::map::TrieLabel;
+            let a: TrieLabelStruct<u8, ()> = TrieLabelStruct(1, ());
+            assert_eq!(a.mem_size(SizeFlags::default()), 1);
+            let x = 1u8;
+            assert_eq!(x.mem_size(SizeFlags::default()), 1);
+        }
+
+        #[test]
+        fn trie_label_struct_u8_u8() {
+            let a: TrieLabelStruct<u8, u8> = TrieLabelStruct(1, 2);
+            assert_eq!(a.mem_size(SizeFlags::default()), 2);
+            let x = 1u8;
+            assert_eq!(x.mem_size(SizeFlags::default()), 1);
+        }
+
+        #[test]
+        fn trie_label_struct_u8_opt_u8() {
+            let a: TrieLabelStruct<u8, Option<u8>> = TrieLabelStruct(1, Some(2));
+            assert_eq!(a.mem_size(SizeFlags::default()), 3);
+            let x = 1u8;
+            assert_eq!(x.mem_size(SizeFlags::default()), 1);
+        }
     }
 
     mod exact_match_tests {

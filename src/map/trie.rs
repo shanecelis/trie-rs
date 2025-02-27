@@ -299,7 +299,7 @@ impl<Label: PartialOrd, Value> PartialOrd for TrieLabel<Label, Value> {
 }
 
 impl<Label: PartialOrd, Value> PartialOrd<Label> for TrieLabel<Label, Value> {
-    // #[inline]
+    #[inline]
     fn partial_cmp(
         &self,
         other: &Label,
@@ -316,7 +316,7 @@ impl<Label: PartialOrd, Value> PartialOrd<Label> for TrieLabel<Label, Value> {
 }
 
 impl<Label: PartialOrd, Value> Ord for TrieLabel<Label, Value> {
-    // Required method
+    #[inline]
     fn cmp(&self, other: &Self) -> Ordering {
         self.partial_cmp(other).unwrap()
     }
@@ -369,11 +369,10 @@ impl<Label: PartialEq, Value> PartialEq for TrieLabel<Label, Value> {
             }
             (TrieLabel::Value(_), TrieLabel::Value(_)) => {
                 if cfg!(test) {
+                    // Let any values be true for testing.
                     true
                 } else {
-                // false
-                // PartialEq::eq(a, b)
-                    panic!("There should never be more than one value in a set of leaves.");
+                    panic!("`TrieLabel::Value`s should not need to be tested for equality.");
                 }
             }
             (TrieLabel::Label(_), TrieLabel::Value(_)) => {
@@ -409,8 +408,6 @@ impl<Label: PartialEq, Value> PartialEq for TrieLabel<Label, Value> {
 // }
 
 impl<Label: PartialEq, Value> Eq for TrieLabel<Label, Value> { }
-
-
 
 #[cfg(test)]
 mod search_tests {

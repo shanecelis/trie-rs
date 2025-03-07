@@ -13,8 +13,7 @@ pub struct PostfixIter<'a, Token, Value> {
 impl<'a, Token: Ord, Value> PostfixIter<'a, Token, Value> {
     #[inline]
     pub(crate) fn starts_with(trie: &'a Trie<Token, Value>, start: LoudsNodeNum) -> Self {
-        let mut queue: Vec<_> = vec![start];
-        queue.reverse();
+        let queue: Vec<_> = vec![start];
         Self {
             trie,
             queue,

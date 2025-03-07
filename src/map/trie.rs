@@ -1,7 +1,8 @@
 //! A trie map stores a value with each word or key.
 use crate::inc_search::IncSearch;
 use crate::label::{Label, LabelKind};
-use crate::search::{PostfixCollect, PostfixIter, PrefixCollect, PrefixIter};
+use crate::search::{PostfixCollect, PostfixIter, PrefixCollect, PrefixIter, PrefixIter2};
+use crate::map::starts_with::{StartsWith};
 use crate::try_from::TryFromTokens;
 use louds_rs::{AncestorNodeIter, ChildNodeIter, Louds, LoudsNodeNum};
 use std::iter::FromIterator;
@@ -89,6 +90,14 @@ impl<Token: Ord, Value> Trie<Token, Value> {
         PrefixIter::new(self, label)
     }
 
+    /// Return the common prefixes of `label`.
+    pub fn prefixes_of2<L: Label<Token>>(
+        &self,
+        label: L,
+    ) -> PrefixIter2<'_, Token, Value, L::IntoTokens> {
+        PrefixIter2::new(self, label)
+    }
+
     /// Return the common prefixes of `label` as `(label, value)` pairs.
     pub fn prefixes_of_pairs<L>(
         &self,
@@ -143,6 +152,16 @@ impl<Token: Ord, Value> Trie<Token, Value> {
         self.get(label)
             .map(|n| n.starts_with())
             .unwrap_or_else(|| PostfixIter::empty(self))
+    }
+
+    /// Returns terminal nodes that follow after this node.
+    pub fn starts_with2(&self, label: impl Label<Token>) -> StartsWith<'_, Token, Value>
+    where
+        Token: Clone,
+    {
+        self.get(label)
+            .map(|n| StartsWith::new(self, n.node_num))
+            .unwrap_or_else(|| StartsWith::empty(self))
     }
 
     /// Returns the exact match `(label, value)` pairs that follow after this node.
@@ -552,6 +571,33 @@ mod search_tests {
                     let trie = super::build_trie();
                     let results: Vec<(String, &u8)> = trie.starts_with(label).pairs().filter_map(Result::ok).collect();
                     let expected_results: Vec<(String, &u8)> = expected_results.iter().map(|s| (s.0.to_string(), &s.1)).collect();
+                    assert_eq!(results, expected_results);
+                }
+            )*
+            }
+        }
+
+        parameterized_tests! {
+            t1: ("a", vec![("a", 0), ("app", 1), ("apple", 2), ("application", 4)]),
+            t2: ("app", vec![("app", 1), ("apple", 2), ("application", 4)]),
+            t3: ("appl", vec![("apple", 2), ("application", 4)]),
+            t4: ("apple", vec![("apple", 2)]),
+            t5: ("b", vec![("better", 3)]),
+            t6: ("c", Vec::<(&str, u8)>::new()),
+            t7: ("アップ", vec![("アップル🍎", 5)]),
+        }
+    }
+
+    mod starts_with2_tests {
+        macro_rules! parameterized_tests {
+            ($($name:ident: $value:expr,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    let (label, expected_results) = $value;
+                    let trie = super::build_trie();
+                    let results: Vec<(String, u8)> = trie.starts_with2(label).pairs().collect();
+                    let expected_results: Vec<(String, u8)> = expected_results.iter().map(|s| (s.0.to_string(), s.1)).collect();
                     assert_eq!(results, expected_results);
                 }
             )*

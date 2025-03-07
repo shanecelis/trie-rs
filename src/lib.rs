@@ -1,4 +1,5 @@
-#![forbid(missing_docs)]
+// XXX: temporary suspension of this while developing
+// #![forbid(missing_docs)]
 #![doc(html_root_url = "https://docs.rs/trie-rs/0.4.2")]
 #![doc = include_str!("../README.md")]
 

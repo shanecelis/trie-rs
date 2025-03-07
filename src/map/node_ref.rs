@@ -59,6 +59,15 @@ impl<'t, Token, Value> NodeRef<'t, Token, Value> {
         }
     }
 
+    /// Returns the range of this node.
+    pub fn range_from(&self, start: LoudsNodeNum) -> NodeIter<'t, Token, Value> {
+        NodeIter {
+            trie: &self.trie,
+            start,
+            end: self.node_num,
+        }
+    }
+
     /// Returns the label of this node.
     pub fn label<L: TryFromTokens<Token>>(&self) -> Result<L, L::Error>
     where

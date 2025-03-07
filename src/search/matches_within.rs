@@ -9,7 +9,7 @@ use louds_rs::LoudsNodeNum;
 
 /// Iterates through all the common prefixes of a given label.
 #[derive(Clone)]
-pub struct PrefixIter2<'t, Token, Value, Tokens: Iterator<Item = Token>> {
+pub struct MatchesWithin<'t, Token, Value, Tokens: Iterator<Item = Token>> {
     trie: &'t Trie<Token, Value>,
     tokens: Peekable<Tokens>,
     curr: LoudsNodeNum,
@@ -17,7 +17,7 @@ pub struct PrefixIter2<'t, Token, Value, Tokens: Iterator<Item = Token>> {
     children: Vec<LoudsNodeNum>,
 }
 
-impl<'t, Token, Value, Tokens: Iterator<Item = Token>> PrefixIter2<'t, Token, Value, Tokens> {
+impl<'t, Token, Value, Tokens: Iterator<Item = Token>> MatchesWithin<'t, Token, Value, Tokens> {
     #[inline]
     pub(crate) fn new<L: Label<Token, IntoTokens = Tokens>>(
         trie: &'t Trie<Token, Value>,
@@ -76,7 +76,7 @@ impl<'t, Token, Value, Tokens: Iterator<Item = Token>> PrefixIter2<'t, Token, Va
     // }
 }
 
-impl<'t, Token, Value, Tokens> Iterator for PrefixIter2<'t, Token, Value, Tokens>
+impl<'t, Token, Value, Tokens> Iterator for MatchesWithin<'t, Token, Value, Tokens>
 where
     Token: Ord,
     Tokens: Iterator<Item = Token>,

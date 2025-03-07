@@ -2,7 +2,7 @@
 use crate::inc_search::IncSearch;
 use crate::label::{Label, LabelKind};
 use crate::map::starts_with::StartsWith;
-use crate::search::{PostfixCollect, PostfixIter, PrefixCollect, PrefixIter, PrefixIter2};
+use crate::search::{PostfixCollect, PostfixIter, PrefixCollect, PrefixIter, MatchesWithin};
 use crate::try_from::TryFromTokens;
 use louds_rs::{AncestorNodeIter, ChildNodeIter, Louds, LoudsNodeNum};
 use std::iter::FromIterator;
@@ -91,11 +91,11 @@ impl<Token: Ord, Value> Trie<Token, Value> {
     }
 
     /// Return the common prefixes of `label`.
-    pub fn prefixes_of2<L: Label<Token>>(
+    pub fn matches_within<L: Label<Token>>(
         &self,
         label: L,
-    ) -> PrefixIter2<'_, Token, Value, L::IntoTokens> {
-        PrefixIter2::new(self, label)
+    ) -> MatchesWithin<'_, Token, Value, L::IntoTokens> {
+        MatchesWithin::new(self, label)
     }
 
     /// Return the common prefixes of `label` as `(label, value)` pairs.
@@ -655,6 +655,34 @@ mod search_tests {
                     let results: Result<Vec<(String, &u8)>, _> = trie.prefixes_of(label).pairs().collect();
                     let expected_results: Vec<(String, &u8)> = expected_results.iter().map(|s| (s.0.to_string(), &s.1)).collect();
                     assert_eq!(results, Ok(expected_results));
+                }
+            )*
+            }
+        }
+
+        parameterized_tests! {
+            t1: ("a", vec![("a", 0)]),
+            t2: ("ap", vec![("a", 0)]),
+            t3: ("appl", vec![("a", 0), ("app", 1)]),
+            t4: ("appler", vec![("a", 0), ("app", 1), ("apple", 2)]),
+            t5: ("bette", Vec::<(&str, u8)>::new()),
+            t6: ("betterment", vec![("better", 3)]),
+            t7: ("c", Vec::<(&str, u8)>::new()),
+            t8: ("アップル🍎🍏", vec![("アップル🍎", 5)]),
+        }
+    }
+
+    mod matches_within_of_tests {
+        macro_rules! parameterized_tests {
+            ($($name:ident: $value:expr,)*) => {
+            $(
+                #[test]
+                fn $name() {
+                    let (label, expected_results) = $value;
+                    let trie = super::build_trie();
+                    let results: Vec<(String, u8)> = trie.matches_within(label).pairs().collect();
+                    let expected_results: Vec<(String, u8)> = expected_results.iter().map(|s| (s.0.to_string(), s.1)).collect();
+                    assert_eq!(results, expected_results);
                 }
             )*
             }

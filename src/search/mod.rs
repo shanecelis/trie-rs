@@ -9,5 +9,5 @@ mod prefix_collect;
 pub use postfix::*;
 pub use postfix_collect::*;
 pub use prefix::*;
-pub use prefix2::*;
 pub use prefix_collect::*;
+pub use prefix2::*;

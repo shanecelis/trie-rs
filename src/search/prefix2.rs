@@ -1,8 +1,11 @@
 use std::iter::Peekable;
 
-use crate::{label::Label, map::{Trie, NodeRef}};
-use louds_rs::LoudsNodeNum;
 use crate::try_from::TryFromTokens;
+use crate::{
+    label::Label,
+    map::{NodeRef, Trie},
+};
+use louds_rs::LoudsNodeNum;
 
 /// Iterates through all the common prefixes of a given label.
 #[derive(Clone)]
@@ -31,7 +34,8 @@ impl<'t, Token, Value, Tokens: Iterator<Item = Token>> PrefixIter2<'t, Token, Va
     pub fn labels<L>(self) -> impl Iterator<Item = L>
     where
         Token: Clone + Ord,
-        L: TryFromTokens<Token> {
+        L: TryFromTokens<Token>,
+    {
         self.filter_map(|node_ref| node_ref.label().ok())
     }
 
@@ -40,7 +44,8 @@ impl<'t, Token, Value, Tokens: Iterator<Item = Token>> PrefixIter2<'t, Token, Va
     where
         Token: Clone + Ord,
         L: TryFromTokens<Token>,
-        Value: Clone, {
+        Value: Clone,
+    {
         self.filter_map(|node_ref| {
             // node_ref.range().pair.ok()
             let label = node_ref.label().ok();
@@ -54,10 +59,9 @@ impl<'t, Token, Value, Tokens: Iterator<Item = Token>> PrefixIter2<'t, Token, Va
     where
         Token: Clone + Ord,
         L: TryFromTokens<Token>,
-        Value: Clone{
-        self.filter_map(|node_ref| {
-            node_ref.value().cloned()
-        })
+        Value: Clone,
+    {
+        self.filter_map(|node_ref| node_ref.value().cloned())
     }
 
     // XXX: This doesn't make any sense here.

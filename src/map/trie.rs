@@ -1,8 +1,8 @@
 //! A trie map stores a value with each word or key.
 use crate::inc_search::IncSearch;
 use crate::label::{Label, LabelKind};
+use crate::map::starts_with::StartsWith;
 use crate::search::{PostfixCollect, PostfixIter, PrefixCollect, PrefixIter, PrefixIter2};
-use crate::map::starts_with::{StartsWith};
 use crate::try_from::TryFromTokens;
 use louds_rs::{AncestorNodeIter, ChildNodeIter, Louds, LoudsNodeNum};
 use std::iter::FromIterator;

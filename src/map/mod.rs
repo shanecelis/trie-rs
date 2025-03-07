@@ -2,9 +2,9 @@
 
 mod node_mut;
 mod node_ref;
+mod starts_with;
 mod trie;
 mod trie_builder;
-mod starts_with;
 
 pub use node_mut::*;
 pub use node_ref::*;

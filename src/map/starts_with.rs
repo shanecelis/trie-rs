@@ -1,8 +1,6 @@
-use crate::{
-    map::{Trie, node_ref::NodeRef},
-};
-use louds_rs::LoudsNodeNum;
+use crate::map::{Trie, node_ref::NodeRef};
 use crate::try_from::TryFromTokens;
+use louds_rs::LoudsNodeNum;
 
 /// Iterate over the match/terminal node refs.
 pub struct StartsWith<'t, Token, Value> {
@@ -33,7 +31,8 @@ impl<'t, Token, Value> StartsWith<'t, Token, Value> {
     pub fn labels<L>(self) -> impl Iterator<Item = L>
     where
         Token: Clone,
-        L: TryFromTokens<Token> {
+        L: TryFromTokens<Token>,
+    {
         self.filter_map(|node_ref| node_ref.label().ok())
     }
 
@@ -42,7 +41,8 @@ impl<'t, Token, Value> StartsWith<'t, Token, Value> {
     where
         Token: Clone,
         L: TryFromTokens<Token>,
-        Value: Clone, {
+        Value: Clone,
+    {
         self.filter_map(|node_ref| {
             // node_ref.range().pair.ok()
             let label = node_ref.label().ok();
@@ -56,16 +56,16 @@ impl<'t, Token, Value> StartsWith<'t, Token, Value> {
     where
         Token: Clone,
         L: TryFromTokens<Token>,
-        Value: Clone{
-        self.filter_map(|node_ref| {
-            node_ref.value().cloned()
-        })
+        Value: Clone,
+    {
+        self.filter_map(|node_ref| node_ref.value().cloned())
     }
 
     pub fn suffixes<L>(self) -> impl Iterator<Item = L>
     where
         Token: Clone,
-        L: TryFromTokens<Token> {
+        L: TryFromTokens<Token>,
+    {
         let start: LoudsNodeNum = self.start;
         self.filter_map(move |node_ref| {
             L::try_from_reverse_tokens(node_ref.range_from(start).map(|n| n.token().clone())).ok()
